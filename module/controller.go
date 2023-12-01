@@ -64,7 +64,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/HealHeroo/be_healhero/model"
+	"github.com/nizarabdulkholiq/cobainBE/model"
 	"github.com/badoux/checkmail"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -190,7 +190,7 @@ func SignUpPengguna(db *mongo.Database, insertedDoc model.Pengguna) error {
 
 func SignUpDriver(db *mongo.Database, insertedDoc model.Driver) error {
 	objectId := primitive.NewObjectID()
-	if insertedDoc.NamaLengkap == "" || insertedDoc.JenisKelamin == "" || insertedDoc.NomorHP == "" || insertedDoc.Alamat == "" || insertedDoc.PlatMotor == "" ||  insertedDoc.Akun.Email == "" || insertedDoc.Akun.Password == "" {
+	if insertedDoc.NamaLengkap == "" || insertedDoc.JenisKelamin == "" || insertedDoc.NomorHP == "" || insertedDoc.Alamat == "" || insertedDoc.PlatBis == "" ||  insertedDoc.Akun.Email == "" || insertedDoc.Akun.Password == "" {
 		return fmt.Errorf("dimohon untuk melengkapi data")
 	} 
 	if err := checkmail.ValidateFormat(insertedDoc.Akun.Email); err != nil {
@@ -224,7 +224,7 @@ func SignUpDriver(db *mongo.Database, insertedDoc model.Driver) error {
 		"jeniskelamin": insertedDoc.JenisKelamin,
 		"nomorhp": insertedDoc.NomorHP,
 		"alamat": insertedDoc.Alamat,
-		"platbis": insertedDoc.PlatMotor,
+		"platbis": insertedDoc.PlatBis,
 		"akun": model.User {
 			ID : objectId,
 		},
@@ -681,7 +681,7 @@ func GetDriverFromAkun(akun primitive.ObjectID, db *mongo.Database) (doc model.D
 
 //obat
 
-func InsertTiket(iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.Obat) error {
+func InsertTiket(iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.Tiket) error {
 	if insertedDoc.TujuanEvent == "" || insertedDoc.Jemputan == "" || insertedDoc.Keterangan == "" || insertedDoc.Harga == "" {
 		return fmt.Errorf("mohon untuk melengkapi data")
 	}
@@ -700,7 +700,7 @@ func InsertTiket(iduser primitive.ObjectID, db *mongo.Database, insertedDoc mode
 	return nil
 }
 
-func UpdateTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.Obat) error {
+func UpdateTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.Tiket) error {
 	_, err := GetTiketFromID(idparam, db)
 	if err != nil {
 		return err
@@ -765,9 +765,9 @@ func GetTiketFromID(_id primitive.ObjectID, db *mongo.Database) (doc model.Tiket
 
 //order
 
-func InsertOrderTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.Order) error {
+func InsertOrderTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, insertedDoc model.OrderTiket) error {
 
-	if insertedDoc.TujuanEvent == "" || insertedDoc.Quantity == "" || insertedDoc.TotalCost == "" || insertedDoc.Status == "" {
+	if insertedDoc.Event == "" || insertedDoc.Quantity == "" || insertedDoc.TotalCost == "" || insertedDoc.Status == "" {
 		return fmt.Errorf("harap lengkapi semua data order")
 	}
 
@@ -781,7 +781,7 @@ func InsertOrderTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, in
 		"tiket": bson.M{
 			"_id" : idparam,
 		},
-		"tujuaneven":    insertedDoc.TujuanEvent,
+		"even":    insertedDoc.Event,
 		"quantity":    insertedDoc.Quantity,
 		"total_cost":   insertedDoc.TotalCost,
 		"status":   insertedDoc.Status,
@@ -796,20 +796,20 @@ func InsertOrderTiket(idparam, iduser primitive.ObjectID, db *mongo.Database, in
 
 
 //update status pengiriman
-func UpdateStatusOrder(idorder primitive.ObjectID, db *mongo.Database, insertedDoc model.Order) error {
+func UpdateStatusOrderTiket(idorder primitive.ObjectID, db *mongo.Database, insertedDoc model.OrderTiket) error {
 	order, err := GetOrderFromID(idorder, db)
 	if err != nil {
 		return err
 	}
 
 	data := bson.M{
-		"tujuaneven":    order.TujuanEvent,
+		"even":    order.Event,
 		"quantity":    order.Quantity,
 		"total_cost":   order.TotalCost,
 		"status": insertedDoc.Status,
 	}
 
-	err = UpdateOneDoc(idorder, db, "ordertiket", data)
+	err = UpdateOneDoc(idorder, db, "order", data)
 	if err != nil {
 		return err
 	}
@@ -829,7 +829,7 @@ func DeleteOrder(idparam, iduser primitive.ObjectID, db *mongo.Database) error {
 	return nil
 }
 
-func GetOrderFromID(_id primitive.ObjectID, db *mongo.Database) (doc model.Order, err error) {
+func GetOrderFromID(_id primitive.ObjectID, db *mongo.Database) (doc model.OrderTiket, err error) {
 	collection := db.Collection("order")
 	filter := bson.M{"_id": _id}
 	err = collection.FindOne(context.TODO(), filter).Decode(&doc)
@@ -843,7 +843,7 @@ func GetOrderFromID(_id primitive.ObjectID, db *mongo.Database) (doc model.Order
 }
 
 
-func GetAllOrder(db *mongo.Database) (order []model.Order, err error) {
+func GetAllOrder(db *mongo.Database) (order []model.OrderTiket, err error) {
 	collection := db.Collection("order")
 	filter := bson.M{}
 	cursor, err := collection.Find(context.TODO(), filter)

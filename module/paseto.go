@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"aidanwoods.dev/go-paseto"
-	"github.com/HealHeroo/be_healhero/model"
+	"github.com/nizarabdulkholiq/cobainBE/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

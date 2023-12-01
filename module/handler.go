@@ -6,84 +6,33 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/HealHeroo/be_healhero/model"
+	"github.com/nizarabdulkholiq/cobainBE/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+// var (
+// 	Response model.Response
+// 	user model.User
+// 	pengguna model.Pengguna
+// 	driver model.Driver
+// 	obat model.Obat
+// 	order model.Order
+// 	password model.Password
+
+// )
 
 var (
 	Response model.Response
 	user model.User
 	pengguna model.Pengguna
 	driver model.Driver
-	obat model.Obat
-	order model.Order
+	Tiket model.Tiket
+	orderTiket model.OrderTiket
 	password model.Password
 
 )
-
-/ var MongoString string = os.Getenv("MONGOSTRING")
-
-func MongoConnect(MongoString, dbname string) *mongo.Database {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv(MongoString)))
-	if err != nil {
-		fmt.Printf("MongoConnect: %v\n", err)
-	}
-	return client.Database(dbname)
-}
-
-// crud
-func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
-	collection := db.Collection(col)
-	filter := bson.M{}
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return fmt.Errorf("error GetAllDocs %s: %s", col, err)
-	}
-	err = cursor.All(context.TODO(), &docs)
-	if err != nil {
-		return err
-	}
-	return docs
-}
-
-func InsertOneDoc(db *mongo.Database, col string, doc interface{}) (insertedID primitive.ObjectID, err error) {
-	result, err := db.Collection(col).InsertOne(context.Background(), doc)
-	if err != nil {
-		return insertedID, fmt.Errorf("kesalahan server : insert")
-	}
-	insertedID = result.InsertedID.(primitive.ObjectID)
-	return insertedID, nil
-}
-
-func UpdateOneDoc(id primitive.ObjectID, db *mongo.Database, col string, doc interface{}) (err error) {
-	filter := bson.M{"_id": id}
-	result, err := db.Collection(col).UpdateOne(context.Background(), filter, bson.M{"$set": doc})
-	if err != nil {
-		return fmt.Errorf("error update: %v", err)
-	}
-	if result.ModifiedCount == 0 {
-		err = fmt.Errorf("tidak ada data yang diubah")
-		return
-	}
-	return nil
-}
-
-func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error {
-	collection := db.Collection(col)
-	filter := bson.M{"_id": _id}
-	result, err := collection.DeleteOne(context.TODO(), filter)
-	if err != nil {
-		return fmt.Errorf("error deleting data for ID %s: %s", _id, err.Error())
-	}
-
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("data with ID %s not found", _id)
-	}
-
-	return nil
-}
 
 
 // signup
@@ -882,7 +831,7 @@ func GCFHandlerGetTiket(PASETOPUBLICKEYENV, MONGOCONNSTRINGENV, dbname string, r
 
 
 //order
-func GCFHandlerInsertOrder(PASETOPUBLICKEYENV, MONGOCONNSTRINGENV, dbname string, r *http.Request) string {
+func GCFHandlerInsertOrderTiket(PASETOPUBLICKEYENV, MONGOCONNSTRINGENV, dbname string, r *http.Request) string {
 	conn := MongoConnect(MONGOCONNSTRINGENV, dbname)
 	var Response model.Response
 	Response.Status = false
@@ -892,7 +841,7 @@ func GCFHandlerInsertOrder(PASETOPUBLICKEYENV, MONGOCONNSTRINGENV, dbname string
 		Response.Message = "Gagal Decode Token : " + err.Error()
 		return GCFReturnStruct(Response)
 	}
-	var dataorder model.Order
+	var dataorder model.OrderTiket
 	err = json.NewDecoder(r.Body).Decode(&dataorder)
 	if err != nil {
 		Response.Message = "error parsing application/json: " + err.Error()
@@ -909,7 +858,7 @@ func GCFHandlerInsertOrder(PASETOPUBLICKEYENV, MONGOCONNSTRINGENV, dbname string
 		Response.Message = "Invalid ID parameter"
 		return GCFReturnStruct(Response)
 	}
-	err = InsertOrder(idParam, payload.Id, conn, dataorder)
+	err = InsertOrderTiket(idParam, payload.Id, conn, dataorder)
 	if err != nil {
 		Response.Message = err.Error()
 		return GCFReturnStruct(Response)
